@@ -21,19 +21,13 @@
 # their target configurations are in different directories.
 
 .PHONY: third_party/build
-third_party/build: build/cargo-host/release/elf2tab sandbox_setup
-	cd third_party/libtock-rs && \
-		CARGO_TARGET_DIR="../../build/userspace/cargo" \
-		$(BWRAP) cargo build --offline --release --target=thumbv7m-none-eabi --examples
+third_party/build: build/cargo-host/release/elf2tab
 
 .PHONY: third_party/check
 third_party/check: cargo_version_check sandbox_setup
 	cd third_party/elf2tab && \
 		CARGO_TARGET_DIR="../../build/cargo-host" \
 		$(BWRAP) cargo check --frozen --release
-	cd third_party/libtock-rs && \
-		CARGO_TARGET_DIR="../../build/userspace/cargo" \
-		$(BWRAP) cargo check --offline --release --target=thumbv7m-none-eabi --examples
 	cd third_party/rustc-demangle && \
 		CARGO_TARGET_DIR="../../build/cargo-host" \
 		$(BWRAP) cargo check --offline --release
@@ -55,9 +49,6 @@ third_party/localtests: cargo_version_check sandbox_setup
 	cd third_party/elf2tab && \
 		CARGO_TARGET_DIR="../../build/cargo-host" \
 		$(BWRAP) cargo test --frozen --release
-	cd third_party/libtock-rs && \
-		CARGO_TARGET_DIR="../../build/cargo-host" \
-		$(BWRAP) cargo test --lib --offline --release
 	cd third_party/rustc-demangle && \
 		CARGO_TARGET_DIR="../../build/cargo-host" \
 		$(BWRAP) cargo test --offline --release

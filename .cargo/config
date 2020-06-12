@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Point cargo to our vendored dependencies.
-[source.crates-io]
-replace-with = 'third_party'
-
 [source.third_party]
 # If we point cargo to third_party directly, then it errors on the submodules
 # (which are missing the checksums expected in the registry format). Instead

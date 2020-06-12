@@ -25,8 +25,6 @@ BWRAP := bwrap                                                               \
          --bind "$(CURDIR)/kernel/Cargo.lock" "$(CURDIR)/kernel/Cargo.lock"  \
          --bind "$(CURDIR)/userspace/Cargo.lock"                             \
                 "$(CURDIR)/userspace/Cargo.lock"                             \
-         --bind "$(CURDIR)/third_party/libtock-rs/Cargo.lock"                \
-                "$(CURDIR)/third_party/libtock-rs/Cargo.lock"                \
          --dev /dev                                                          \
          --tmpfs /tmp                                                        \
          --unshare-all
