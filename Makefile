@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+.PHONY: all
+all: build
+
 # Subdirectories containing Build.mk files.
 BUILD_SUBDIRS := kernel runner third_party tools userspace
 
@@ -31,8 +34,16 @@ BWRAP := bwrap                                                               \
          --tmpfs /tmp                                                        \
          --unshare-all
 
-.PHONY: all
-all: build
+# A target that sets up directories the bwrap sandbox needs. bwrap will fail if
+# you try to bind a nonexistent file, so we need to manually create all the
+# Cargo.lock files. Note that the best way to test this is to run a `make clean`
+# followed by a build, as `make clean` *should* clean all these up.
+.PHONY: sandbox_setup
+sandbox_setup:
+	mkdir -p build
+	>>kernel/Cargo.lock
+	>>third_party/libtock-rs/Cargo.lock
+	>>userspace/Cargo.lock
 
 .PHONY: build
 build: $(addsuffix /build,$(BUILD_SUBDIRS))
@@ -81,12 +92,5 @@ cargo_version_check:
 		     echo "#######################################################################"; \
 		     exit 1; \
 		fi
-
-# A target that sets up directories the bwrap sandbox needs.
-.PHONY: sandbox_setup
-sandbox_setup:
-	mkdir -p build
-	>>kernel/Cargo.lock
-	>>userspace/Cargo.lock
 
 include $(addsuffix /Build.mk,$(BUILD_SUBDIRS))
