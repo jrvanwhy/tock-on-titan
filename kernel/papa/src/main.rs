@@ -79,7 +79,7 @@ pub static mut STACK_MEMORY: [u8; 0x2000] = [0; 0x2000];
 
 pub struct Papa {
     console: &'static capsules::console::Console<'static>,
-    gpio: &'static capsules::gpio::GPIO<'static>,
+    gpio: &'static capsules::gpio::GPIO<'static, h1::gpio::GPIOPin>,
     timer: &'static AlarmDriver<'static, VirtualMuxAlarm<'static, Timels>>,
     ipc: kernel::ipc::IPC,
     digest: &'static h1_syscalls::digest::DigestDriver<'static, h1::crypto::sha::ShaEngine>,
@@ -197,15 +197,20 @@ pub unsafe fn reset_handler() {
     hil::uart::Transmit::set_transmit_client(low_level_debug_uart, low_level_debug);
 
     //debug!("Booting.");
-    let gpio_pins = static_init!(
-        [&'static dyn kernel::hil::gpio::InterruptValuePin; 1],
-        [&h1::gpio::PORT0.pins[0]]);
 
+    let gpio_wrapper = static_init!(
+        kernel::hil::gpio::InterruptValueWrapper<'static, h1::gpio::GPIOPin>,
+        kernel::hil::gpio::InterruptValueWrapper::new(&h1::gpio::PORT0.pins[0]));
+    let gpio_refs = static_init!(
+        [&'static kernel::hil::gpio::InterruptValueWrapper<'static, h1::gpio::GPIOPin>; 1],
+        [gpio_wrapper]);
+    kernel::hil::gpio::Interrupt::set_client(&h1::gpio::PORT0.pins[0], gpio_refs[0]);
     let gpio = static_init!(
-        capsules::gpio::GPIO<'static>,
-        capsules::gpio::GPIO::new(gpio_pins, kernel.create_grant(&grant_cap)));
-    for pin in gpio_pins.iter() {
-        pin.set_client(gpio)
+        capsules::gpio::GPIO<'static, h1::gpio::GPIOPin>,
+        capsules::gpio::GPIO::new(gpio_refs, kernel.create_grant(&grant_cap)));
+    for wrapper in gpio_refs.iter() {
+        use kernel::hil::gpio::{InterruptValueWrapper, InterruptWithValue};
+        <InterruptValueWrapper<_> as InterruptWithValue>::set_client(wrapper, gpio);
     }
 
     let alarm_mux = static_init!(
