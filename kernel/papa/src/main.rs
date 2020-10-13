@@ -201,17 +201,14 @@ pub unsafe fn reset_handler() {
     let gpio_wrapper = static_init!(
         kernel::hil::gpio::InterruptValueWrapper<'static, h1::gpio::GPIOPin>,
         kernel::hil::gpio::InterruptValueWrapper::new(&h1::gpio::PORT0.pins[0]));
+    kernel::hil::gpio::Interrupt::set_client(&h1::gpio::PORT0.pins[0], gpio_wrapper);
     let gpio_refs = static_init!(
-        [&'static kernel::hil::gpio::InterruptValueWrapper<'static, h1::gpio::GPIOPin>; 1],
-        [gpio_wrapper]);
-    kernel::hil::gpio::Interrupt::set_client(&h1::gpio::PORT0.pins[0], gpio_refs[0]);
+        [Option<&'static kernel::hil::gpio::InterruptValueWrapper<'static, h1::gpio::GPIOPin>>; 1],
+        [Some(gpio_wrapper)]);
     let gpio = static_init!(
         capsules::gpio::GPIO<'static, h1::gpio::GPIOPin>,
         capsules::gpio::GPIO::new(gpio_refs, kernel.create_grant(&grant_cap)));
-    for wrapper in gpio_refs.iter() {
-        use kernel::hil::gpio::{InterruptValueWrapper, InterruptWithValue};
-        <InterruptValueWrapper<_> as InterruptWithValue>::set_client(wrapper, gpio);
-    }
+    kernel::hil::gpio::InterruptWithValue::set_client(gpio_wrapper, gpio);
 
     let alarm_mux = static_init!(
         capsules::virtual_alarm::MuxAlarm<'static, Timels>,

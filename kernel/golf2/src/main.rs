@@ -235,17 +235,16 @@ pub unsafe fn reset_handler() {
         [kernel::hil::gpio::InterruptValueWrapper<'static, h1::gpio::GPIOPin>; 2],
         [kernel::hil::gpio::InterruptValueWrapper::new(&h1::gpio::PORT0.pins[0]),
          kernel::hil::gpio::InterruptValueWrapper::new(&h1::gpio::PORT0.pins[1])]);
+    kernel::hil::gpio::Interrupt::set_client(&h1::gpio::PORT0.pins[0], &gpio_wrappers[0]);
+    kernel::hil::gpio::Interrupt::set_client(&h1::gpio::PORT0.pins[1], &gpio_wrappers[1]);
     let gpio_refs = static_init!(
-        [&'static kernel::hil::gpio::InterruptValueWrapper<'static, h1::gpio::GPIOPin>; 2],
-        [&gpio_wrappers[0], &gpio_wrappers[1]]);
-    kernel::hil::gpio::Interrupt::set_client(&h1::gpio::PORT0.pins[0], gpio_refs[0]);
-    kernel::hil::gpio::Interrupt::set_client(&h1::gpio::PORT0.pins[1], gpio_refs[1]);
+        [Option<&'static kernel::hil::gpio::InterruptValueWrapper<'static, h1::gpio::GPIOPin>>; 2],
+        [Some(&gpio_wrappers[0]), Some(&gpio_wrappers[1])]);
     let gpio = static_init!(
         capsules::gpio::GPIO<'static, h1::gpio::GPIOPin>,
         capsules::gpio::GPIO::new(gpio_refs, kernel.create_grant(&grant_cap)));
-    for wrapper in gpio_refs.iter() {
-        use kernel::hil::gpio::{InterruptValueWrapper, InterruptWithValue};
-        <InterruptValueWrapper<_> as InterruptWithValue>::set_client(wrapper, gpio);
+    for wrapper in gpio_wrappers.iter() {
+        kernel::hil::gpio::InterruptWithValue::set_client(wrapper, gpio);
     }
 
     let alarm_mux = static_init!(
