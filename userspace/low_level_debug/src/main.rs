@@ -12,41 +12,45 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
+#![no_main]
 #![no_std]
+
+extern crate libtock_panic_debug;
+
+use libtock_runtime::{set_main, stack_size, TockSyscalls};
+
+set_main!{main}
+// Hack: ask for 3 kB of stack so the runtime init doesn't move the process
+// break below the stack pointer before init. The hack can be removed when the
+// kernel's memory init is changed to the 2.0 semantics.
+stack_size!{3*1024}
 
 // Note: this currently calls into UintPrinter, not LowLevelDebug. When Tock 1.5
 // is released, we should replace UintPrinter with LowLevelDebug in golf2, at
 // which point this app will work correctly.
-fn main() {
-    use libtock::timer::{DriverContext, Duration};
-
+fn main() -> ! {
     // LowLevelDebug: App 0x0 prints 0x123
-    libtock::debug::low_level_print1(0x123);
+    libtock_low_level_debug::LowLevelDebug::<TockSyscalls>::print1(0x123);
 
     // LowLevelDebug: App 0x0 prints 0x456 0x789
-    libtock::debug::low_level_print2(0x456, 0x789);
+    libtock_low_level_debug::LowLevelDebug::<TockSyscalls>::print2(0x456, 0x789);
 
     // Print a series of messages quickly to overfill the queue and demonstrate
     // the message drop behavior.
     for _ in 0..10 {
-        libtock::debug::low_level_print1(0x1);
-        libtock::debug::low_level_print2(0x2, 0x3);
+        libtock_low_level_debug::LowLevelDebug::<TockSyscalls>::print1(0x1);
+        libtock_low_level_debug::LowLevelDebug::<TockSyscalls>::print2(0x2, 0x3);
     }
 
     // Wait for the above to print then output a few more messages.
-    let timer_context = DriverContext::create().ok().expect("DriverContext::create");
-    let mut timer_driver = timer_context.create_timer_driver().ok().expect("create_timer_driver");
-    let timer_driver = timer_driver.activate().ok().expect("timer activate");
-    unsafe {
-        use core::executor::block_on;
-        let _ = block_on(timer_driver.sleep(Duration::from_ms(100)));
-    }
+    // TODO: Sleep
 
     // LowLevelDebug: App 0x0 prints 0xA
-    libtock::debug::low_level_print1(0xA);
+    libtock_low_level_debug::LowLevelDebug::<TockSyscalls>::print1(0xA);
 
     // LowLevelDebug: App 0x0 prints 0xB 0xC
-    libtock::debug::low_level_print2(0xB, 0xC);
+    libtock_low_level_debug::LowLevelDebug::<TockSyscalls>::print2(0xB, 0xC);
 
     // LowLevelDebug: App 0x0 status code 0x1
     panic!()

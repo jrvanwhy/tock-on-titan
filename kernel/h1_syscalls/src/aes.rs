@@ -14,7 +14,7 @@
 
 use core::cell::Cell;
 use h1::crypto::aes::{AesEngine, AES128Ecb};
-use kernel::{AppId, Callback, Driver, Grant, ReturnCode, Shared, AppSlice};
+use kernel::{AppId, Callback, LegacyDriver, Grant, ReturnCode, SharedReadWrite, AppSlice};
 use kernel::common::cells::TakeCell;
 use kernel::hil::symmetric_encryption;
 use kernel::hil::symmetric_encryption::{AES128_BLOCK_SIZE, AES128_KEY_SIZE};
@@ -27,10 +27,10 @@ pub static mut AES_BUF: [u8; AES128_BLOCK_SIZE] = [0; AES128_BLOCK_SIZE];
 
 #[derive(Default)]
 pub struct AppData {
-    key: Option<AppSlice<Shared, u8>>,
-    input_buffer: Option<AppSlice<Shared, u8>>,
-    output_buffer: Option<AppSlice<Shared, u8>>,
-    iv_buffer: Option<AppSlice<Shared, u8>>,
+    key: Option<AppSlice<SharedReadWrite, u8>>,
+    input_buffer: Option<AppSlice<SharedReadWrite, u8>>,
+    output_buffer: Option<AppSlice<SharedReadWrite, u8>>,
+    iv_buffer: Option<AppSlice<SharedReadWrite, u8>>,
     crypto_callback: Option<Callback>,
 }
 
@@ -141,7 +141,7 @@ impl<'a> symmetric_encryption::Client<'a> for AesDriver<'a> {
 
 
 
-impl<'a> Driver for AesDriver<'a> {
+impl<'a> LegacyDriver for AesDriver<'a> {
     fn subscribe(&self,
                  subscribe_num: usize,
                  callback: Option<Callback>,
@@ -211,10 +211,10 @@ impl<'a> Driver for AesDriver<'a> {
         }
     }
 
-    fn allow(&self,
+    fn allow_readwrite(&self,
              app_id: AppId,
              minor_num: usize,
-             slice: Option<AppSlice<Shared, u8>>
+             slice: Option<AppSlice<SharedReadWrite, u8>>
     ) -> ReturnCode {
         match minor_num {
                 0 => {

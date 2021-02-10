@@ -14,14 +14,14 @@
 
 use core::cell::Cell;
 use h1::crypto::dcrypto::{Dcrypto, DcryptoClient, ProgramFault};
-use kernel::{AppId, Callback, Driver, ReturnCode, Shared, AppSlice};
+use kernel::{AppId, Callback, LegacyDriver, ReturnCode, SharedReadWrite, AppSlice};
 use kernel::common::cells::MapCell;
 
 pub const DRIVER_NUM: usize = 0x40004;
 
 pub struct App {
-    program: Option<AppSlice<Shared, u8>>,
-    data_buffer: Option<AppSlice<Shared, u8>>,
+    program: Option<AppSlice<SharedReadWrite, u8>>,
+    data_buffer: Option<AppSlice<SharedReadWrite, u8>>,
     callback: Option<Callback>,
 }
 
@@ -87,7 +87,7 @@ impl<'a> DcryptoDriver<'a> {
     }
 }
 
-impl<'a> Driver for DcryptoDriver<'a> {
+impl<'a> LegacyDriver for DcryptoDriver<'a> {
     fn subscribe(&self,
                  subscribe_num: usize,
                  callback: Option<Callback>,
@@ -121,9 +121,9 @@ impl<'a> Driver for DcryptoDriver<'a> {
         }
     }
 
-    fn allow(&self, _: AppId,
+    fn allow_readwrite(&self, _: AppId,
              minor_num: usize,
-             slice: Option<AppSlice<Shared, u8>>
+             slice: Option<AppSlice<SharedReadWrite, u8>>
     ) -> ReturnCode {
         match minor_num {
             0 => {

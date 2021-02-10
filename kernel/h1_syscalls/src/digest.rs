@@ -14,16 +14,16 @@
 
 use core::cell::Cell;
 use h1::hil::digest::{DigestEngine, DigestError, DigestMode};
-use kernel::{AppId, AppSlice, Driver, Grant, ReturnCode, Shared};
+use kernel::{AppId, AppSlice, LegacyDriver, Grant, ReturnCode, SharedReadWrite};
 
 pub const DRIVER_NUM: usize = 0x40003;
 
 /// Per-application driver data.
 pub struct App {
     /// Buffer where data to be hashed will be read from.
-    input_buffer: Option<AppSlice<Shared, u8>>,
+    input_buffer: Option<AppSlice<SharedReadWrite, u8>>,
     /// Buffer where the digest will be written to when hashing is finished.
-    output_buffer: Option<AppSlice<Shared, u8>>,
+    output_buffer: Option<AppSlice<SharedReadWrite, u8>>,
 }
 
 impl Default for App {
@@ -58,7 +58,7 @@ const COMMAND_FINALIZE: usize         = 3;
 const COMMAND_BUSY: usize             = 4;
 const COMMAND_CERTIFICATE_INIT: usize = 5;
 
-impl<'a, E: DigestEngine> Driver for DigestDriver<'a, E> {
+impl<'a, E: DigestEngine> LegacyDriver for DigestDriver<'a, E> {
     fn command(&self, minor_num: usize, r2: usize, _r3: usize, caller_id: AppId) -> ReturnCode {
         match minor_num {
             COMMAND_CHECK => ReturnCode::SUCCESS,
@@ -190,10 +190,10 @@ impl<'a, E: DigestEngine> Driver for DigestDriver<'a, E> {
         }
     }
 
-    fn allow(&self,
+    fn allow_readwrite(&self,
              app_id: AppId,
              allow_num: usize,
-             slice: Option<AppSlice<Shared, u8>>
+             slice: Option<AppSlice<SharedReadWrite, u8>>
     ) -> ReturnCode {
         match allow_num {
                 0 => {

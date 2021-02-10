@@ -19,9 +19,10 @@ authors = ["jrvanwhy <jrvanwhy@google.com>"]
 edition = "2018"
 publish = false
 
-[dependencies.core]
-package = "async-support"
-path = "../../third_party/libtock-rs/async-support"
-
 [dependencies]
-libtock = { path = "../../third_party/libtock-rs" }
+libtock_low_level_debug = { path = "../../third_party/libtock-rs/core/low_level_debug" }
+libtock_panic_debug = { path = "../../third_party/libtock-rs/core/panic_debug" }
+
+[dependencies.libtock_runtime]
+features = ["no_auto_layout"]
+path = "../../third_party/libtock-rs/core/runtime"

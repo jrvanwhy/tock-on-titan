@@ -30,9 +30,6 @@ third_party/build: build/cargo-host/release/elf2tab sandbox_setup
 third_party/check: cargo_version_check sandbox_setup
 	cd third_party/elf2tab && \
 		CARGO_TARGET_DIR="../../build/cargo-host" $(BWRAP) cargo check --release
-	cd third_party/libtock-rs && \
-		CARGO_TARGET_DIR="../../build/userspace/cargo" \
-		$(BWRAP) cargo check --offline --release --target=thumbv7m-none-eabi --examples
 	cd third_party/rustc-demangle && \
 		CARGO_TARGET_DIR="../../build/cargo-host" \
 		$(BWRAP) cargo check --offline --release

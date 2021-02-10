@@ -12,7 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![feature(lang_items)]
 #![no_std]
+
+#[lang = "start"]
+#[allow(improper_ctypes_definitions)]
+extern "C" fn start(main: fn() -> (), _argc: isize, _argv: *const *const u8) -> bool {
+    main();
+    true
+}
 
 // Rust complains that things are unused if they are only used when cfg(test) is
 // true. If we include modules when cfg(test) is false, then declarations in the

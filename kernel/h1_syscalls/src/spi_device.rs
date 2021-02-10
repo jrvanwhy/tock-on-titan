@@ -8,10 +8,10 @@ use h1::hil::spi_device::SpiDeviceClient;
 use kernel::AppId;
 use kernel::AppSlice;
 use kernel::Callback;
-use kernel::Driver;
+use kernel::LegacyDriver;
 use kernel::Grant;
 use kernel::ReturnCode;
-use kernel::Shared;
+use kernel::SharedReadWrite;
 
 use spiutils::driver::HandlerMode;
 use spiutils::protocol::flash::AddressMode;
@@ -23,8 +23,8 @@ pub const DRIVER_NUM: usize = 0x40030;
 
 #[derive(Default)]
 pub struct AppData {
-    tx_buffer: Option<AppSlice<Shared, u8>>,
-    rx_buffer: Option<AppSlice<Shared, u8>>,
+    tx_buffer: Option<AppSlice<SharedReadWrite, u8>>,
+    rx_buffer: Option<AppSlice<SharedReadWrite, u8>>,
     data_received_callback: Option<Callback>,
     address_mode_handling: Cell<HandlerMode>,
     address_mode_changed_callback: Option<Callback>,
@@ -221,7 +221,7 @@ impl<'a> SpiDeviceClient for SpiDeviceSyscall<'a> {
     }
 }
 
-impl<'a> Driver for SpiDeviceSyscall<'a> {
+impl<'a> LegacyDriver for SpiDeviceSyscall<'a> {
     fn subscribe(&self,
                  subscribe_num: usize,
                  callback: Option<Callback>,
@@ -300,10 +300,10 @@ impl<'a> Driver for SpiDeviceSyscall<'a> {
         }
     }
 
-    fn allow(&self,
+    fn allow_readwrite(&self,
              app_id: AppId,
              minor_num: usize,
-             slice: Option<AppSlice<Shared, u8>>
+             slice: Option<AppSlice<SharedReadWrite, u8>>
     ) -> ReturnCode {
         //debug!("allow: num={}, slice={}",
         //    minor_num, if slice.is_some() { "Some" } else { "None" });

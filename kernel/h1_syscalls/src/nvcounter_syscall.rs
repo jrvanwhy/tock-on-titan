@@ -154,7 +154,7 @@ impl<'c, C: NvCounter<'c>> NvCounterSyscall<'c, C> {
     }
 }
 
-impl<'c, C: NvCounter<'c>> kernel::Driver for NvCounterSyscall<'c, C> {
+impl<'c, C: NvCounter<'c>> kernel::LegacyDriver for NvCounterSyscall<'c, C> {
     fn command(&self, minor_num: usize, _: usize, _: usize, app: AppId) -> ReturnCode {
         match minor_num {
             0 => ReturnCode::SUCCESS,

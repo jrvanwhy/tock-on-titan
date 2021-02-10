@@ -16,10 +16,10 @@
 /// but returns false rather than panicking on failure.
 
 pub fn print_failure(expr: &str) {
-    let mut console = libtock::console::Console::new();
-    let _ = console.write("FAILED: ");
-    let _ = console.write(expr);
-    let _ = console.write("\n");
+    let mut console = libtock_console::Console::<libtock_runtime::TockSyscalls>::new();
+    console.write_str("FAILED: ");
+    console.write_str(expr);
+    console.write_str("\n");
 }
 
 #[macro_export]
@@ -40,8 +40,10 @@ macro_rules! require_eq {
         let rhs = $rhs;
         if lhs != rhs {
             use core::fmt::Write;
-            let _ = writeln!(libtock::console::Console::new(),
-                             "FAILED: {}, {:?} != {:?}", $name, lhs, rhs);
+            let mut console = libtock_console::Console::<libtock_runtime::TockSyscalls>::new();
+            console.write_str("FAILED: ")
+            console.write_str(name);
+            console.write_str("\n");
             return false;
         }
     );

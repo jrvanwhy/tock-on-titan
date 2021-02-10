@@ -17,7 +17,7 @@
 
 
 use core::cell::Cell;
-use kernel::{AppId, AppSlice, Callback, Driver, Grant, ReturnCode, Shared};
+use kernel::{AppId, AppSlice, Callback, LegacyDriver, Grant, ReturnCode, SharedReadWrite};
 use crate::usb::{UsbHidU2f, UsbHidU2fClient};
 
 pub const DRIVER_NUM: usize = 0x20008;
@@ -38,8 +38,8 @@ pub struct App {
     tx_callback: Option<Callback>,
     rx_callback: Option<Callback>,
     connection_callback: Option<Callback>,
-    tx_buffer: Option<AppSlice<Shared, u8>>,
-    rx_buffer: Option<AppSlice<Shared, u8>>,
+    tx_buffer: Option<AppSlice<SharedReadWrite, u8>>,
+    rx_buffer: Option<AppSlice<SharedReadWrite, u8>>,
 }
 
 pub struct U2fSyscallDriver<'a> {
@@ -93,12 +93,12 @@ impl<'a> UsbHidU2fClient<'a> for U2fSyscallDriver<'a> {
     }
 }
 
-impl<'a> Driver for U2fSyscallDriver<'a> {
-    fn allow(
+impl<'a> LegacyDriver for U2fSyscallDriver<'a> {
+    fn allow_readwrite(
         &self,
         appid: AppId,
         allow_num: usize,
-        slice: Option<AppSlice<Shared, u8>>,
+        slice: Option<AppSlice<SharedReadWrite, u8>>,
     ) -> ReturnCode {
         match allow_num {
             U2F_ALLOW_TRANSMIT => self.apps.enter(appid, |app, _| {

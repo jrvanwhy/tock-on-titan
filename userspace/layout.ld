@@ -17,11 +17,9 @@
    userspace (and tests) will fail. */
 
 MEMORY {
-  FLASH (rx) : ORIGIN = 0x00076040, LENGTH = 0x0000FFC0
-  SRAM (rwx) : ORIGIN = 0x00014000, LENGTH = 0x0000c000
+  FLASH (X) : ORIGIN = 0x00076000, LENGTH = 0x00010000
+  RAM   (W) : ORIGIN = 0x00014000, LENGTH = 0x0000c000
 }
 
-MPU_MIN_ALIGN = 8K;
-STACK_SIZE = 2048;
-
-INCLUDE ../third_party/libtock-rs/layout.ld
+TBF_HEADER_SIZE = 0x40;
+INCLUDE ../third_party/libtock-rs/core/runtime/libtock_layout.ld

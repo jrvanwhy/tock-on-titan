@@ -1,6 +1,6 @@
 use core::cell::Cell;
 use h1::hil::spi_host::SpiHost;
-use kernel::{AppId, Callback, Driver, Grant, ReturnCode, Shared, AppSlice};
+use kernel::{AppId, Callback, LegacyDriver, Grant, ReturnCode, SharedReadWrite, AppSlice};
 
 pub const DRIVER_NUM: usize = 0x40020;
 
@@ -39,7 +39,7 @@ impl<'a> SpiHostSyscall<'a> {
     }
 }
 
-impl<'a> Driver for SpiHostSyscall<'a> {
+impl<'a> LegacyDriver for SpiHostSyscall<'a> {
     fn subscribe(&self,
                  subscribe_num: usize,
                  _callback: Option<Callback>,
@@ -70,10 +70,10 @@ impl<'a> Driver for SpiHostSyscall<'a> {
         }
     }
 
-    fn allow(&self,
+    fn allow_readwrite(&self,
              _app_id: AppId,
              minor_num: usize,
-             _slice: Option<AppSlice<Shared, u8>>
+             _slice: Option<AppSlice<SharedReadWrite, u8>>
     ) -> ReturnCode {
         match minor_num {
             _ => ReturnCode::ENOSUPPORT,

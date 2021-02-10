@@ -17,10 +17,25 @@
 // Relies on internal details of rustc, so this may break during toolchain
 // updates.
 
+#![feature(asm)]
 #![no_std]
+
+extern crate libtock_panic_debug;
 
 mod assertions;
 mod compiler_required;
 
 pub use self::assertions::*;
 pub use self::compiler_required::*;
+
+libtock_runtime::set_main!{main}
+libtock_runtime::stack_size!{644}
+
+fn main() -> ! {
+    use libtock_platform::RawSyscalls;
+
+    unsafe {
+        asm!("bl main", inout("r0") 0 => _, inout("r1") 0 => _, inout("r2") 0 => _, inout("r3") 0 => _);
+        loop { asm!("svc 6", in("r0") 0); }
+    }
+}

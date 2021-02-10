@@ -86,18 +86,17 @@ prtest: build devicetests localtests
 	git status
 	@echo '```'
 
-# Installs the necessary Rust toolchains
+# Installs the necessary Rust toolchains.
+# TODO: Is it possible to tell rustup to install the toolchain from a
+# `rust-toolchain` file? I just invoke `cargo` in userspace to make rustup
+# install the toolchain there.
 .PHONY: setup
 setup:
 	rustup toolchain add --profile minimal \
-		"$$(cat third_party/libtock-rs/rust-toolchain)"
-	rustup toolchain add --profile minimal \
 		"$$(cat third_party/tock/rust-toolchain)"
 	rustup target add --toolchain \
-		"$$(cat third_party/libtock-rs/rust-toolchain)" thumbv7m-none-eabi
-	rustup target add --toolchain \
 		"$$(cat third_party/tock/rust-toolchain)" thumbv7m-none-eabi
-
+	cd userspace && rustup target add thumbv7m-none-eabi
 
 # A target that prints an error message and fails the build if the cargo version
 # is not sufficiently up-to-date.

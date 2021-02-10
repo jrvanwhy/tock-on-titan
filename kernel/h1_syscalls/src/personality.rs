@@ -31,7 +31,7 @@
 use core::cell::Cell;
 use h1::personality;
 use h1::hil::personality::{Client, Personality};
-use kernel::{AppId, Callback, Driver, Grant, ReturnCode, Shared, AppSlice};
+use kernel::{AppId, Callback, LegacyDriver, Grant, ReturnCode, SharedReadWrite, AppSlice};
 use kernel::common::cells::OptionalCell;
 
 pub const DRIVER_NUM: usize = 0x5000b;
@@ -45,7 +45,7 @@ const SUBSCRIBE_WRITE_DONE: usize      = 0;
 
 #[derive(Default)]
 pub struct AppData {
-    data: Option<AppSlice<Shared, u8>>,
+    data: Option<AppSlice<SharedReadWrite, u8>>,
     callback: Option<Callback>,
 }
 
@@ -69,7 +69,7 @@ impl<'a> PersonalitySyscall<'a> {
     }
 }
 
-impl<'a> Driver for PersonalitySyscall<'a> {
+impl<'a> LegacyDriver for PersonalitySyscall<'a> {
     fn subscribe(&self,
                  subscribe_num: usize,
                  callback: Option<Callback>,
@@ -125,10 +125,10 @@ impl<'a> Driver for PersonalitySyscall<'a> {
         }
     }
 
-    fn allow(&self,
+    fn allow_readwrite(&self,
              app_id: AppId,
              minor_num: usize,
-             slice: Option<AppSlice<Shared, u8>>,
+             slice: Option<AppSlice<SharedReadWrite, u8>>,
     ) -> ReturnCode {
         match minor_num {
             ALLOW_BUFFER => {
